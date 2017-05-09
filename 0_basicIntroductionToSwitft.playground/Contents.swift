@@ -289,7 +289,6 @@ print(hasAnyMatches(list: numbers, condition: lessThanTen(number:))) // returns 
 var thisShit = numbers.map({ (number: Int) -> Int in
     let result = 3 * number
     return result
-    
 })
 
 // this example is sort of redundant, since for map you can do $0 * 3
@@ -344,7 +343,6 @@ class NamedShape {
     func simpleDescription() -> String {
         return "A shape with \(numberOfSides) sides."
     }
-    
 }
 // instantiated an instance object of the class
 var namedShape = NamedShape(name: "Hexagon")
@@ -386,7 +384,6 @@ class Square: NamedShape {
     override func simpleDescription() -> String {
         return "A square with sides of length \(sideLength)"
     }
-    
 }
 
 let instantiatedSquare = Square(sideLength: 5.2, name: "Test Square")
@@ -413,7 +410,6 @@ class Circle: NamedShape {
     override func simpleDescription() -> String {
         return "A circle with an area of "
     }
-
 }
 
 let instantiatedCircle = Circle(radius: 20, name: "Test Cicle")
@@ -444,7 +440,6 @@ class EquilateralTriangle: NamedShape {
     override func simpleDescription() -> String {
         return "An equilateral triangle with sides of length \(sideLength)"
     }
-    
 }
 
 var triangle = EquilateralTriangle(sideLength: 3.1, name: "Test Triangle")
@@ -471,7 +466,6 @@ class TriangleAndSquare {
         square = Square(sideLength: size, name: name)
         triangle = EquilateralTriangle(sideLength: size, name: name)
     }
-    
 }
 
 var triangleAndSquare = TriangleAndSquare(size: 10, name: "Test Triangle & Square")
@@ -484,17 +478,80 @@ print(triangleAndSquare.square.sideLength) // prints 50
 
 let optionalSquare: Square? = Square(sideLength: 2.5, name: "Test Optional Square")
 let sideLength = optionalSquare?.sideLength
-print(sideLength) // prints 2.5, but also throws an fix-it suggestion
+print(sideLength!) // prints 2.5, but also throws an fix-it suggestion
 
 // Enumerations And Structures
 
+enum Rank: Int {
+    
+    case ace = 1
+    case two, three, four, five, six, seven, eight, nine, ten
+    case jack, queen, king
+    
+    func simpleDescription() -> String {
+        switch self {
+        case .ace:
+            return "ace"
+        case .jack:
+            return "jack"
+        case .queen:
+            return "queen"
+        case .king:
+            return "king"
+        default:
+            return String(self.rawValue)
+        }
+    }
+}
 
+// rawValues are assigned 0 and increments in 1's by default
+// case two to king follows the progression by inference
 
+let ace = Rank.ace
+let aceRawValue = ace.rawValue
+let two = Rank.two
+let twoRawValue = two.rawValue
+let king = Rank.king
+let kingRawValue = king.rawValue
 
+// TODO: Write a function that compares two Rank values by comparing their raw values.
 
+func firstIsGreaterThan(firstRank: Rank, secondRank: Rank) -> Bool {
+    let firstRV = firstRank.rawValue
+    let secondRV = secondRank.rawValue
+    
+    return firstRV > secondRV ? true : false
+}
 
+firstIsGreaterThan(firstRank: ace, secondRank: two)
 
+// would have returned nil if there was no case matching the rawValue, but it does and returns 3
+if let convertedRank = Rank(rawValue: 3) {
+    let threeDescription = convertedRank.simpleDescription()
+}
 
+enum Suit {
+    case spades, hearts, diamonds, clubs
+    func simpleDescription() -> String {
+        switch self {
+        case .spades:
+            return "spades"
+        case .hearts:
+            return "hearts"
+        case .diamonds:
+            return "diamonds"
+        case .clubs:
+            return "clubs"
+        }
+    }
+}
+
+let hearts = Suit.hearts
+let heartsDescription = hearts.simpleDescription()
+
+// TODO: Add a color() method to Suit that returns "black" for spades and clubs, and returns "red" for hearts and diamonds
+
+// page 18
 
 
 
