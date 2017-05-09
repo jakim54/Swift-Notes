@@ -533,6 +533,7 @@ if let convertedRank = Rank(rawValue: 3) {
 enum Suit {
     case spades, hearts, diamonds, clubs
     func simpleDescription() -> String {
+        
         switch self {
         case .spades:
             return "spades"
@@ -544,14 +545,370 @@ enum Suit {
             return "clubs"
         }
     }
-}
+    
+    // TODO: Add a color() method to Suit that returns "black" for spades and clubs, and returns "red" for hearts and diamonds
+    func color() -> String {
+        
+        switch self {
+        case .spades:
+            return "black"
+        case .hearts:
+            return "red"
+        case .diamonds:
+            return "red"
+        case .clubs:
+            return "black"
+        }
+    }
+} // end of enum Suit
 
 let hearts = Suit.hearts
 let heartsDescription = hearts.simpleDescription()
+let testSuite = Suit.clubs.color() // returns black
+let testSuite1 = Suit.hearts.color()
 
-// TODO: Add a color() method to Suit that returns "black" for spades and clubs, and returns "red" for hearts and diamonds
+// Associated Values Behaving Like Stored Properties Of The Enumeration Case Instance
 
-// page 18
+// functions for cases in enums. Interesting.
+enum ServerResponse {
+    case result(String, String)
+    case failure(String)
+    case redirect(Int)
+}
+
+// change the switch condition from success to any of the three below to see the printout
+let success = ServerResponse.result("6:00 AM", "8:09 PM")
+let failure = ServerResponse.failure("Out Of Cheese!")
+let redirect = ServerResponse.redirect(300)
+
+// the switch's value matches against the name of the constant, not the case of the enum
+switch success {
+case let .result(sunrise, sunset):
+    print("Sunrise is at \(sunrise) and sunset is at \(sunset).")
+case let .failure(message):
+    print("Failure....\(message)")
+    // TODO: Add a third case to ServerResponse and to the switch
+case let .redirect(error):
+    print("\(error). Redirecting...Please Wait")
+}
+
+// Struct
+
+// Structures support many of the same behaviors as classes, including methods and initializers. One of the most important differences between structures and classes is that structures are always copied when they are passed around in your code, value based, but classes are passed by reference, inheritance.
+
+struct Card {
+    var rank: Rank
+    var suit: Suit
+    
+    func simpleDescription() -> String {
+        return "The \(rank.simpleDescription()) of \(suit.simpleDescription())"
+    }
+    
+    // TODO: Add a method to Card that creates a full deck of cards, with one card of each combination of rank and suit.
+    func createDeck() -> [Card] {
+        let suits = [Suit.spades, Suit.hearts, Suit.clubs, Suit.diamonds]
+        var deck = [Card]()
+        
+        for theSuit in suits {
+            for theRank in Rank.ace.rawValue...Rank.king.rawValue {
+                deck.append(Card(rank: Rank(rawValue: theRank)!, suit: theSuit))
+            }
+        }
+        
+        return deck
+    }
+    
+    /*
+     Explanation of createDeck():
+        - createDeck() return an array of Cars
+        - create a constant for suits
+        - create an empty array of type Card
+        - create a for loop to iterate through each suit in suits, then a for loop inside that will run in each of the suits for a range from ace to king
+        - appending each card to deck then return deck
+     
+     Hindsight:
+        - I was thinking of solutions with far too complexity for a simple exercise, like having a subclass deck under Cards and the like
+        - Using range, but the actual rawValue, which is of type Int and part of the enum, is better than a "generic" range of 13 cards
+        - Shouldn't be force unwrapping things, but to make it cleaner that I personally like, this hits the first point again
+        - This implementation requires a specification of an instance created with parameters rather than var newDeck = Card()
+    */
+}
+
+let threeOfSpades = Card(rank: .three, suit: .spades)
+let threeOfSpadesDescription = threeOfSpades.simpleDescription()
+
+let aceOfHearts = Card(rank: .ace, suit: .hearts)
+let deck = aceOfHearts.createDeck()
+//print(deck)
+
+/*  
+    .color is not available for Card, where it was retroactively added to one of its subclasses.
+    This was that case that Tom was asking about in terms of inheritance.
+    Look for solutions to this aside from "not doing it in the first place."
+    In terms of fixing/working with legacy codes in situations like this.
+ */
+print(threeOfSpades.suit.color())
+
+
+// Protocols And Extensions
+
+protocol ExampleProtocol {
+    var simpleDescription: String { get }
+    mutating func adjust()
+    
+}
+
+// Classes, enumerations, and structs can all adpot protocols
+class SimpleClass: ExampleProtocol {
+    var simpleDescription: String = "A very simple class."
+    var anotherProperty: Int = 69105
+    
+    // its not written as mutating func because a method in a class can always modify the class
+    func adjust() {
+        simpleDescription += "Now It's 100% Adjusted."
+    }
+}
+
+var a = SimpleClass()
+a.adjust()
+let aDescription = a.simpleDescription
+
+struct SimpleStructure: ExampleProtocol {
+    var simpleDescription: String = "A simple structure"
+    
+    mutating func adjust() {
+       simpleDescription += " (adjusted)"
+    }
+}
+
+var b = SimpleStructure()
+b.adjust()
+let bDescription = b.simpleDescription
+
+// TODO: Write an enumeration that conforms to this protocol
+enum SimpleEnumeration: ExampleProtocol {
+    case basic, adjusted
+    
+    // Enums do not take stored properties so do the following:
+    var simpleDescription: String {
+        switch self {
+        case  .basic:
+            return "A simple Enumeration, currently basic"
+        case .adjusted:
+            return "A simple Enumeration, now adjusted"
+        }
+    }
+    
+    mutating func adjust() {
+        self = .adjusted
+    }
+} // end of enum
+
+var c = SimpleEnumeration.basic
+c.simpleDescription // this is basic
+c.adjust()
+c.simpleDescription // this is adjusted
+
+// use extensions to add functionality to an existing type, such as new methods, computed properties, to add protocol conformance to a type that is declared elsewhere, or even to a type that you imported from a library or a framework.
+
+extension Int: ExampleProtocol {
+    var simpleDescription: String {
+        return "The number \(self)"
+    }
+    
+    mutating func adjust() {
+        self += 42
+    }
+}
+
+print(7.simpleDescription)
+/*
+ print(7.adjust())
+    - This throws an error, cannot use mutating member on immutable value: literals are not mutable
+    - Literals, the 7, cannot change because it's a 7, the 7, where as a variable with a copy of that can be
+    - var upgradedSevenWithAdjust = 7 with .adjust() called on the var and NOT the 7.
+ */
+var upgradedSevenWithAdjust = 7
+upgradedSevenWithAdjust.adjust() // the variable has changed to 49 from 7
+print(upgradedSevenWithAdjust) // prints 49
+
+// TODO: Write an extension for the Double type that adds an absoluteValue property
+extension Double: ExampleProtocol {
+    var simpleDescription: String {
+        return "The number is \(self)"
+    }
+    
+    var absoluteValue: Double {
+        if self > 0.0 {
+            return self
+        } else {
+            return -1 * self
+        }
+    }
+    
+    mutating func adjust() {
+        self -= 10
+    }
+}
+
+print(1.5.simpleDescription)
+var doubleSeven = 7.0
+print(doubleSeven) // prints 7.0
+doubleSeven.adjust()
+print(doubleSeven) // prints -3.0 after adjust
+doubleSeven.absoluteValue // prints 3, which is correct because absolute value is never negative and only denotes how many values it is from 0
+
+// You can use a protocol name just liky any other named type - for example, to create a collection of objects that have different types but that all conform to a single protocol. When you work with values whose type is a protocol type, methods outside the protocol definition are not available.
+let protocolValue: ExampleProtocol = a
+print(protocolValue.simpleDescription) // prints "A very simple class.Now It's 100% Adjusted."
+//print(protocolValue.anotherProperty) // throws an error: value of type 'ExampleProtocol' has no member 'anotherProperty'
+
+// Even though the variable protocolValue has a runtime type of SimpleClass, the compiler treats it as the given type of ExampleProtocol. This means that you can't accidentally access methods or properties that the class implements in addition to its protocol conformance.
+
+// =============================
+// Error Handling ==============
+// =============================
+
+// Errors can be represented using any type that adopts the Error protocol.
+
+enum PrinterError: Error {
+    case outOfPaper
+    case noToner
+    case onFire
+}
+
+// Use throw to throw an error and throws to mark a function that can throw an error. If you throw an error in a function, the function returns immediately and the code that called the function handles the error.
+
+func send(job: Int, toPrinter printerName: String) throws -> String {
+    if printerName == "Never Has Toner" {
+        throw PrinterError.noToner
+    }
+    
+    return "Job Sent"
+}
+
+// There are several ways to handle errors. One way is to use do-catch. Inside the do block, you mark code that can throw an error by writing try in front of it. Inside the catch block, the error is automatically given the name error unless you give it a different name.
+
+do {
+    // TODO: Change the printer name to "Never Has Toner", so that the send(job:toPrinter:) function throws an error.
+//    let printerResponse = try send(job: 1040, toPrinter: "Bi Sheng") // prints "Job Sent"
+    let printerResponse = try send(job: 1040, toPrinter: "Never Has Toner")
+    print(printerResponse)
+} catch {
+    print(error)
+}
+
+// you can provide multiple catch blocks that handle specific errors. You write a pattern after catch just as you do after case in a switch.
+
+// TODO: Add code to throw an error inside the do block. What kind of error do you need to throw so that the error is handled by the first catch block? What about the second and third blocks?
+do {
+    let printerResponse = try send(job: 1440, toPrinter: "Gutenberg")
+    print(printerResponse)
+} catch PrinterError.onFire {
+    print("I'll just put this over here, with the rest of the fire.")
+} catch let printerError as PrinterError {
+    print("Printer error: \(printerError).")
+} catch {
+    print(error)
+}
+
+// Another way to handle errors is to use try? to convert the result to an optional. If the function throws an error, the specific error is discarded and the result is nil. Otherwise, the result is an optional containing the value that the function returned.
+
+let printerSuccess = try? send(job: 1884, toPrinter: "Mergenthaler")
+let printerFailure = try? send(job: 1885, toPrinter: "Never Has Toner")
+
+// Use defer to write a block of code that is executed after all other code in the function, just before the function returns. The code is executed regardless of whether the function throws an error. You can use defer to write setup and cleanup code next to each other, even though they need to be executed at different times.
+
+var fridgeIsOpen = false
+let fridgeContent = ["milk", "eggs", "leftovers"]
+
+func fridgeContains(_ food: String) -> Bool {
+    fridgeIsOpen = true
+    defer {
+        fridgeIsOpen = false
+    }
+    
+    let result = fridgeContent.contains(food)
+    return result
+}
+
+fridgeContains("banana")
+print(fridgeIsOpen)
+
+// =============================
+// Generics ====================
+// =============================
+
+// Name inside angle brackets to make a generic function or type
+func makeArray<Item>(repeating item: Item, numberOfTimes: Int) -> [Item] {
+    var result = [Item]()
+    
+    for _ in 0..<numberOfTimes {
+        result.append(item)
+    }
+    
+    return result
+}
+
+makeArray(repeating: "knock", numberOfTimes: 4)
+
+// you can make generic forms of functions and methods, as well as classes, enumerations, and structures.
+// Reimplement the Swift standard library's optional type
+enum OptionalValue<Wrapped> {
+    case none
+    case some(Wrapped)
+}
+
+var possibleInteger: OptionalValue<Int> = .none
+possibleInteger = .some(100)
+
+// Use where right before the body to specify a list of requirements - for example, to require the type to implement a protocol, to require two types to be the same, or to require a class to have a particular superclass.
+
+// TODO: Modify the anyCommonElements(_:_:) function to make a function that returns an array of the elements that any two sequences have in common
+/*
+func anyCommonElements<T: Sequence, U: Sequence>() -> Bool where T.Iterator.Element == U.Iterator.Element {
+    for lhsItem in lhs {
+        for rhsItem in rhs {
+            if lhsItem == rhsItem {
+                return true
+            }
+        }
+    }
+    
+    return false
+}
+
+anyCommonElements([1, 2, 3], [3])
+*/
+
+// The above function will return true if the two sequences passed in have any common elements
+// Modify the function to make a function that returns the array of the elements that any two sequences have in common
+
+/*
+func getCommonElements<T, U where T: Sequence, U: Sequence, T.Iterator.Element: Equatable, T.Iterator.Element == U.Iterator.Element> (lhs: T, rhs: U) -> [T.Iterator.Element] {
+    var seq: [T.Iterator.Element] = []
+    for lhsItem in lhs {
+        for rhsItem in rhs {
+            if lhsItem == rhsItem {
+                seq.append(lhsItem)
+            }
+        }
+    }
+    
+    return seq
+}
+
+getCommonElements([1, 2, 3, 30], [1, 10, 30])
+*/
+
+// Writing <T: Equatable> is the same as writing <T> ... where T: Equatable
+
+
+
+
+
+
+
 
 
 
